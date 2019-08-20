@@ -1,0 +1,129 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+
+class case:
+
+
+    def __init__(self,visite):
+
+        self.visite = visite
+
+    def est_visite(self):
+
+        self.visite = True
+
+
+def solve(n): #n >2
+
+    Laby_case = np.array([case(False) for i in range(n) for j in range(n)])
+    Laby_case = np.reshape(Laby_case , (n,n))
+    Mur_horizontaux = np.array([False for i in range(n-1) for j in range(n)])
+    Mur_verticaux = np.array([False for i in range(n) for j in range(n-1)])
+    Mur_horizontaux= np.reshape(Mur_horizontaux,(n-1,n))
+    Mur_verticaux = np.reshape(Mur_verticaux,(n,n-1))
+    Laby_case[0][0].est_visite()
+    Pile = []
+    c_c = [0,0]
+    i=1
+    while check_visit(Laby_case):
+        voisin_case = voisin_proche(c_c,Laby_case)
+        if voisin_case != []:
+            r_pos = random.sample(voisin_case,1)[0]
+
+            Pile.append(c_c)
+            if r_pos[0]==c_c[0]:
+                Mur_verticaux[r_pos[0]][min(c_c[1],r_pos[1])] = True
+            if r_pos[1]==c_c[1]:
+                Mur_horizontaux[min(r_pos[0],c_c[0])][r_pos[1]] = True
+            c_c = r_pos
+            Laby_case[c_c[0]][c_c[1]].est_visite()
+        elif Pile!=[]:
+
+           c_c =Pile.pop()
+
+    return Mur_verticaux,Mur_horizontaux
+
+def voisin_proche(position,Laby_case):
+
+    n=len(Laby_case)
+    x,y = position
+    liste_candidat =[]
+
+    if x == 0 or x == n-1:
+        nouv_x = int(1+ x* (n-3)/(n-1))
+        if y ==0 or y==n-1:
+            nouv_y =  int(1+ y * (n-3)/(n-1))
+            liste_candidat.append([nouv_x,y])
+            liste_candidat.append([x,nouv_y])
+        else:
+            liste_candidat.append([x,y-1])
+            liste_candidat.append([x,y+1])
+            liste_candidat.append([nouv_x,y])
+
+    elif y==0 or y==n-1:
+        if x != 0 and x != n-1:
+            nouv_y =  int(1+ y * (n-3)/(n-1))
+            liste_candidat.append([x-1,y])
+            liste_candidat.append([x+1,y])
+            liste_candidat.append([x,nouv_y])
+
+    else:
+
+        liste_candidat.append([x-1,y])
+        liste_candidat.append([x+1,y])
+        liste_candidat.append([x,y-1])
+        liste_candidat.append([x,y+1])
+
+    liste_voisin = [candidat for candidat in liste_candidat if Laby_case[candidat[0]][candidat[1]].visite ==False ]
+
+    return liste_voisin
+
+def check_visit(Liste):
+
+    for liste_case in Liste:
+        for case in liste_case:
+
+            if case.visite == False:
+
+                return True
+
+    return False
+
+def Laby_init(n):
+    Laby_case = np.array([case(False) for i in range(n) for j in range(n)])
+    Laby_case = np.reshape(Laby_case , (n,n))
+    return Laby_case
+#
+# [Lab[i][j].visite for i in range(len(Lab)) for j in range(len(Lab[0])) ]
+
+def draw_lab(n,M_h,M_v):
+
+    dim_c = 1
+    for i in range(n):
+        for j in range(n-1):
+            if M_v[i][j] == False:
+
+                plt.plot([(j+1)*dim_c,(j+1)*dim_c],[-(i)*dim_c,-(i+1)*dim_c], 'k')
+
+    for i in range(n-1):
+        for j in range(n):
+            if M_h[i][j] == False:
+
+                plt.plot([(j)*dim_c,(j+1)*dim_c],[-(i+1)*dim_c,-(i+1)*dim_c] ,'k')
+
+
+    plt.plot([0,dim_c * n, dim_c*n,0,0],[0,0,-dim_c*n,-dim_c*n,0],'k')
+
+    plt.plot([0,0],[0,-dim_c],"lightgreen")
+    plt.plot([n*dim_c,n*dim_c],[-(n-1)*dim_c,-n*dim_c],"red")
+    plt.show()
+
+def Laby():
+    n=int(input("Entrer la taille du labyrinthe : "))
+    M_v,M_h = solve(n)
+    draw_lab(n,M_h,M_v)
+
+if __name__ == '__main__':
+    Laby()
+
